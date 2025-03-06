@@ -1,17 +1,34 @@
 resource "aws_instance" "web" {
-  ami                         = "ami-0a5a6018d12197ea4"
+  # AMI ID NGINX  = ami-0dfee6e7eb44d480b
+  # AMI ID Ubuntu = ami-0652a081025ec9fee
+  ami                         = "ami-0dfee6e7eb44d480b"
   associate_public_ip_address = true
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.public_http_traffic.id]
-  tags                        = merge(local.common_tags, { Name = "06-resources-ec2" })
+  root_block_device {
+    delete_on_termination = true
+    volume_size           = 10
+    volume_type           = "gp3"
+  }
+
+  tags = merge(local.common_tags, {
+    Name = "06-resources-ec2"
+  })
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_security_group" "public_http_traffic" {
-  description = "Security group to allo traffic on ports 443 and 80"
+  description = "Security group allowing traffic on ports 443 and 80"
   name        = "public-http-traffic"
   vpc_id      = aws_vpc.main.id
-  tags        = merge(local.common_tags, { Name = "06-resources" })
+
+  tags = merge(local.common_tags, {
+    Name = "06-resources-sg"
+  })
 }
 
 resource "aws_vpc_security_group_ingress_rule" "http" {

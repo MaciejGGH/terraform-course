@@ -10,15 +10,9 @@ terraform {
       version = "~> 3.0"
     }
   }
-
-
-  backend "s3" {
-    bucket = "udemy-backend-ex"
-    key    = "04-backends/state.tfstate"
-    region = "eu-west-1"
-  }
 }
 
 provider "aws" {
   region = "eu-west-1"
 }
+
