@@ -8,7 +8,7 @@ module "vpc" {
     subnet_1 = {
       cidr_block = "10.0.0.0/24"
       az         = "eu-west-1b"
-      public     = true
+      public     = false
     }
   }
 }
