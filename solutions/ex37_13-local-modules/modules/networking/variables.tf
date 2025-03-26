@@ -1,3 +1,13 @@
+locals {
+  public_subnets = {
+    for key, config in var.subnet_config : key => config if config.public
+  }
+
+  private_subnets = {
+    for key, config in var.subnet_config : key => config if !config.public
+  }
+}
+
 variable "vpc_config" {
   type = object({
     cidr_block = string
@@ -14,6 +24,7 @@ variable "subnet_config" {
   type = map(object({
     cidr_block = string
     az         = string
+    public     = optional(bool, false)
   }))
 
   validation {

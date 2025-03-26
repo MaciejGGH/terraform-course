@@ -16,6 +16,7 @@ resource "aws_subnet" "this" {
   availability_zone = each.value.az
   cidr_block        = each.value.cidr_block
 
+
   lifecycle {
     precondition {
       condition     = contains(data.aws_availability_zones.available.names, each.value.az)
@@ -30,4 +31,26 @@ resource "aws_subnet" "this" {
   tags = {
     Name = each.key
   }
+}
+
+resource "aws_internet_gateway" "this" {
+  count  = length(local.public_subnets) > 0 ? 1 : 0
+  vpc_id = aws_vpc.this.id
+}
+
+resource "aws_route_table" "public_rtb" {
+  count  = length(local.public_subnets) > 0 ? 1 : 0
+  vpc_id = aws_vpc.this.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.this[0].id
+  }
+}
+
+resource "aws_route_table_association" "public" {
+  for_each = local.public_subnets
+
+  subnet_id      = aws_subnet.this[each.key].id
+  route_table_id = aws_route_table.public_rtb[0].id
 }
