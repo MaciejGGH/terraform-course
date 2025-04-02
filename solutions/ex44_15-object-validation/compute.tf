@@ -31,6 +31,10 @@ resource "aws_instance" "this" {
     volume_type           = "gp3"
   }
 
+  # tags = {
+  #   CostCenter = "1234"
+  # }
+
   lifecycle {
     create_before_destroy = true
     # precondition {
