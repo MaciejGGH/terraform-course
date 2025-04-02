@@ -5,3 +5,4 @@ awscli*.zip
 **.tfstate*
 .prettierrc
 .terraform.lock.hcl
+.env
