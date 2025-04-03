@@ -1,5 +1,10 @@
 import {
-  to = aws_lambda_function.test_lambda
+  to = aws_lambda_function.my_hello_lambda
+  id = "my-hello-lambda"
+}
+
+import {
+  to = aws_lambda_function_url.my_lambda_url
   id = "my-hello-lambda"
 }
 
@@ -9,7 +14,7 @@ data "archive_file" "lambda_code" {
   output_path = "${path.root}/lambda-hello.zip"
 }
 
-resource "aws_lambda_function" "test_lambda" {
+resource "aws_lambda_function" "my_hello_lambda" {
   description      = "A starter AWS Lambda function."
   filename         = "lambda-hello.zip"
   function_name    = "my-hello-lambda"
@@ -23,7 +28,21 @@ resource "aws_lambda_function" "test_lambda" {
   }
   timeout = 3
   logging_config {
-    log_format            = "Text"
-    log_group             = aws_cloudwatch_log_group.lambda.name
+    log_format = "Text"
+    log_group  = aws_cloudwatch_log_group.lambda.name
   }
+}
+
+resource "aws_lambda_function_url" "my_lambda_url" {
+  authorization_type = "NONE"
+  function_name      = aws_lambda_function.my_hello_lambda.function_name
+  invoke_mode        = "BUFFERED"
+}
+
+output "my_hello_lambda_name" {
+  value = aws_lambda_function.my_hello_lambda.function_name
+}
+
+output "my_hello_lambda_url" {
+  value = aws_lambda_function_url.my_lambda_url.function_url
 }
