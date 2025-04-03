@@ -23,9 +23,7 @@ resource "aws_lambda_function" "test_lambda" {
   }
   timeout = 3
   logging_config {
-    application_log_level = null
     log_format            = "Text"
-    log_group             = "/aws/lambda/my-hello-lambda"
-    system_log_level      = null
+    log_group             = aws_cloudwatch_log_group.lambda.name
   }
 }

@@ -33,14 +33,14 @@ data "aws_iam_policy_document" "assume_lambda_execution" {
   statement {
     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
     effect    = "Allow"
-    resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/my-hello-lambda:*"]
+    resources = ["${aws_cloudwatch_log_group.lambda.arn}:*"]
   }
   version = "2012-10-17"
 }
 
 resource "aws_iam_policy" "lambda_execution" {
-  name = "AWSLambdaBasicExecutionRole-88fda693-3b56-4fa7-947a-5503eaab1913"
-  path = "/service-role/"
+  name   = "AWSLambdaBasicExecutionRole-88fda693-3b56-4fa7-947a-5503eaab1913"
+  path   = "/service-role/"
   policy = data.aws_iam_policy_document.assume_lambda_execution.json
 }
 
