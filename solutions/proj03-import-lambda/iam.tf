@@ -9,6 +9,9 @@ import {
   id = "arn:aws:iam::585768187025:policy/service-role/AWSLambdaBasicExecutionRole-88fda693-3b56-4fa7-947a-5503eaab1913"
 }
 
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
 data "aws_iam_policy_document" "assume_lambda_exec_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -21,22 +24,26 @@ data "aws_iam_policy_document" "assume_lambda_exec_role" {
   version = "2012-10-17"
 }
 
-resource "aws_iam_policy" "lambda_execution" {
-  name        = "AWSLambdaBasicExecutionRole-88fda693-3b56-4fa7-947a-5503eaab1913"
-  path        = "/service-role/"
-  policy = jsonencode({
-    Statement = [{
-      Action   = "logs:CreateLogGroup"
-      Effect   = "Allow"
-      Resource = "arn:aws:logs:eu-west-1:585768187025:*"
-      }, {
-      Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]
-      Effect   = "Allow"
-      Resource = ["arn:aws:logs:eu-west-1:585768187025:log-group:/aws/lambda/my-hello-lambda:*"]
-    }]
-    Version = "2012-10-17"
-  })
+data "aws_iam_policy_document" "assume_lambda_execution" {
+  statement {
+    actions   = ["logs:CreateLogGroup"]
+    effect    = "Allow"
+    resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"]
+  }
+  statement {
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    effect    = "Allow"
+    resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/my-hello-lambda:*"]
+  }
+  version = "2012-10-17"
 }
+
+resource "aws_iam_policy" "lambda_execution" {
+  name = "AWSLambdaBasicExecutionRole-88fda693-3b56-4fa7-947a-5503eaab1913"
+  path = "/service-role/"
+  policy = data.aws_iam_policy_document.assume_lambda_execution.json
+}
+
 
 
 resource "aws_iam_role" "lambda_execution_role" {
