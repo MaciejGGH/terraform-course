@@ -1,0 +1,5 @@
+. Creating module structure
+. Implement variable validation
+. Create resources
+. Verify validation
+. Create RDS instance inside the module
