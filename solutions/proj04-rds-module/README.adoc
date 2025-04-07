@@ -1,5 +1,11 @@
 . Creating module structure
 . Implement variable validation
-. Create resources
-. Verify validation
+. Implement networking validation
+.. Receive subnet ids and security group ids via variables
+.. For subnets:
+... Make sure they are private subnets
+.... Check if they are tagged with Access=Private
+... Make sure they are not in the default VPC
+.. For security groups:
+... Make sure there are no inbound rules for IP addresses
 . Create RDS instance inside the module
