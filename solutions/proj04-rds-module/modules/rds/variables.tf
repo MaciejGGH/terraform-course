@@ -22,14 +22,28 @@ variable "instance_class" {
   }
 }
 
-variable "storage_size" {
-  type        = number
-  default     = 2
-  description = "Amount of storage in GB to be used for the DB instance. Only 2, 3 and 4 are allowed due to free tier limitations"
+variable "storage_type" {
+  type        = string
+  default     = "standard"
+  description = "Storage type to be used for the DB instance. Only standard is allowed due to free tier limitations"
 
   validation {
-    condition     = var.storage_size > 1 && var.storage_size < 5
-    error_message = "Please specify DB storage between 1 and 5 GB"
+    condition     = contains(["standard"], var.storage_type)
+    error_message = "Only standard is allowed due to free tier limitations"
+  }
+}
+
+variable "storage_size" {
+  type        = number
+  default     = 5
+  description = <<-EOT
+  Amount of storage in GB to be used for the DB instance. Must be between 5 and 3072 GB in case of standart storage type (magnetic).
+  https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html#API_CreateDBInstance_RequestParameters
+  EOT
+
+  validation {
+    condition     = var.storage_size >= 5 && var.storage_size <= 50
+    error_message = "Please specify DB storage between 20 and 50 GB to comply with free tier limitations."
   }
 }
 

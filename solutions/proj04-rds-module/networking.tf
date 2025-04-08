@@ -7,7 +7,10 @@ data "aws_vpc" "default" {
 }
 
 resource "aws_vpc" "custom" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
   tags = {
     Name = "proj04-custom"
   }
@@ -19,8 +22,9 @@ moved {
 }
 
 resource "aws_subnet" "private1" {
-  vpc_id     = aws_vpc.custom.id
-  cidr_block = "10.0.0.0/24"
+  vpc_id            = aws_vpc.custom.id
+  cidr_block        = "10.0.0.0/24"
+  availability_zone = "eu-west-1a"
 
   tags = {
     Name   = "proj04-custom-private1"
@@ -29,8 +33,9 @@ resource "aws_subnet" "private1" {
 }
 
 resource "aws_subnet" "private2" {
-  vpc_id     = aws_vpc.custom.id
-  cidr_block = "10.0.1.0/24"
+  vpc_id            = aws_vpc.custom.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "eu-west-1b"
 
   tags = {
     Name   = "proj04-custom-private2"
@@ -48,15 +53,42 @@ resource "aws_subnet" "public1" {
   }
 }
 
-# For documentation purposes only, this subnet is not used in the module
-resource "aws_subnet" "not_allowed" {
-  vpc_id     = data.aws_vpc.default.id
-  cidr_block = "172.31.128.0/24"
+resource "aws_internet_gateway" "custom" {
+  vpc_id = aws_vpc.custom.id
 
   tags = {
-    Name = "proj04-not-allowed"
+    Name = "proj04-custom-igw"
   }
 }
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.custom.id
+
+  tags = {
+    Name = "proj04-custom-public-rt"
+  }
+}
+
+resource "aws_route" "public_internet_access" {
+  route_table_id         = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.custom.id
+}
+
+resource "aws_route_table_association" "public1" {
+  subnet_id      = aws_subnet.public1.id
+  route_table_id = aws_route_table.public.id
+}
+
+# For documentation purposes only, this subnet is not used in the module
+# resource "aws_subnet" "not_allowed" {
+#   vpc_id     = data.aws_vpc.default.id
+#   cidr_block = "172.31.128.0/24"
+
+#   tags = {
+#     Name = "proj04-not-allowed"
+#   }
+# }
 
 ############################
 # Security Groups
@@ -101,3 +133,4 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
   to_port           = 443
   ip_protocol       = "tcp"
 }
+
