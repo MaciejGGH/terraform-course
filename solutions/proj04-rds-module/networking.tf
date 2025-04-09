@@ -16,40 +16,52 @@ resource "aws_vpc" "custom" {
   }
 }
 
-moved {
-  from = aws_subnet.allowed
-  to   = aws_subnet.private1
-}
+# moved {
+#   from = aws_subnet.allowed
+#   to   = aws_subnet.private1
+# }
 
-resource "aws_subnet" "private1" {
+# resource "aws_subnet" "private1" {
+#   vpc_id            = aws_vpc.custom.id
+#   cidr_block        = "10.0.0.0/24"
+#   availability_zone = "eu-west-1a"
+
+#   tags = {
+#     Name   = "proj04-custom-private1"
+#     Access = "Private"
+#   }
+# }
+
+# resource "aws_subnet" "private2" {
+#   vpc_id            = aws_vpc.custom.id
+#   cidr_block        = "10.0.1.0/24"
+#   availability_zone = "eu-west-1b"
+
+#   tags = {
+#     Name   = "proj04-custom-private2"
+#     Access = "Private"
+#   }
+# }
+
+resource "aws_subnet" "public1" {
   vpc_id            = aws_vpc.custom.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "eu-west-1a"
 
   tags = {
-    Name   = "proj04-custom-private1"
-    Access = "Private"
+    Name   = "proj04-custom-public1"
+    Access = "Public"
   }
 }
 
-resource "aws_subnet" "private2" {
+resource "aws_subnet" "public2" {
   vpc_id            = aws_vpc.custom.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "eu-west-1b"
 
   tags = {
-    Name   = "proj04-custom-private2"
-    Access = "Private"
-  }
-}
-
-resource "aws_subnet" "public1" {
-  vpc_id     = aws_vpc.custom.id
-  cidr_block = "10.0.2.0/24"
-
-  tags = {
-    Name   = "proj04-custom-public1"
-    Access = "Private"
+    Name   = "proj04-custom-public2"
+    Access = "Public"
   }
 }
 
@@ -80,6 +92,11 @@ resource "aws_route_table_association" "public1" {
   route_table_id = aws_route_table.public.id
 }
 
+resource "aws_route_table_association" "public2" {
+  subnet_id      = aws_subnet.public2.id
+  route_table_id = aws_route_table.public.id
+}
+
 # For documentation purposes only, this subnet is not used in the module
 # resource "aws_subnet" "not_allowed" {
 #   vpc_id     = data.aws_vpc.default.id
@@ -104,6 +121,13 @@ resource "aws_security_group" "source" {
   name        = "source-sg"
   description = "SG from where connections are allowed into the DB"
   vpc_id      = aws_vpc.custom.id
+
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_security_group" "compliant" {
@@ -132,5 +156,16 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
   from_port         = 443
   to_port           = 443
   ip_protocol       = "tcp"
+}
+
+resource "aws_security_group_rule" "rds_inbound" {
+  count             = length(var.allowed_ip_ranges)
+  type              = "ingress"
+  from_port         = 3306  # Adjust if using a different port
+  to_port           = 3306  # Adjust if using a different port
+  protocol          = "tcp"
+  cidr_blocks       = [var.allowed_ip_ranges[count.index]]
+  security_group_id = aws_security_group.compliant.id
+  description       = "Allow inbound access from specified IP range"
 }
 

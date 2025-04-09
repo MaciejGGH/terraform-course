@@ -5,13 +5,13 @@ module "database" {
     aws_security_group.compliant.id
   ]
   subnet_ids = [
-    aws_subnet.private1.id,
-    aws_subnet.private2.id,
-    aws_subnet.public1.id
+    # aws_subnet.private1.id,
+    # aws_subnet.private2.id,
+    aws_subnet.public1.id,
+    aws_subnet.public2.id
   ]
   credentials = {
     username = "dbadmin"
-    password = "not-so-easy-123-pass"
+    password = ""
   }
-
 }
